@@ -64,7 +64,6 @@ public class CameraWallpaperFront extends WallpaperService {
                 try {
                     camera.stopPreview();
                     camera.setPreviewCallback(null);
-                    // camera.lock();
                     camera.release();
                 } catch (Exception e) {
                     e.printStackTrace();

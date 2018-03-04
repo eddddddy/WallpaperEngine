@@ -7,6 +7,7 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorManager;
 import android.hardware.SensorEventListener;
+import android.content.SharedPreferences;
 
 public class ShakeDetectService extends IntentService implements SensorEventListener {
 
@@ -14,22 +15,36 @@ public class ShakeDetectService extends IntentService implements SensorEventList
     private SensorManager mSensorManager;
     private Sensor mAccelerometer;
 
+    SharedPreferences sharedPref;
+    SharedPreferences.Editor editor;
+
     public ShakeDetectService() {
         super("ShakeDetectService");
     }
 
+    @Override
     public void onCreate() {
         super.onCreate();
         System.out.println("i started");
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-        mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_UI);
+        mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_FASTEST/*SensorManager.SENSOR_DELAY_UI*/);
+
+        sharedPref = getApplicationContext().getSharedPreferences("mySharedPref", Context.MODE_PRIVATE);
+        editor = sharedPref.edit();
+        editor.putBoolean("isBackCamera", true);
+        editor.commit();
+
+    }
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        return START_STICKY;
     }
 
     @Override
     protected void onHandleIntent(Intent intent) {
-        while (true) {
-        }
+
     }
 
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
@@ -51,10 +66,13 @@ public class ShakeDetectService extends IntentService implements SensorEventList
         double gForce = Math.sqrt(gX * gX + gY * gY + gZ * gZ);
 
         if (gForce > SHAKE_THRESHOLD_GRAVITY) {
-            Intent intent = new Intent(this, MainActivity.class);
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            startActivity(intent);
-            stopSelf();
+            if (sharedPref.getBoolean("isBackCamera", true)) {
+                editor.putBoolean("isBackCamera", false);
+                editor.apply();
+            } else {
+                editor.putBoolean("isBackCamera", true);
+                editor.apply();
+            }
         }
 
     }

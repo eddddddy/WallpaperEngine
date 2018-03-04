@@ -1,13 +1,19 @@
 package com.edward.wallpaperengine;
 
+import android.content.Context;
 import android.hardware.Camera;
 import android.service.wallpaper.WallpaperService;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
+import android.content.SharedPreferences;
 
 import java.io.IOException;
 
 public class CameraWallpaper extends WallpaperService {
+
+    SharedPreferences sharedPref;
+    int currCamera = Camera.CameraInfo.CAMERA_FACING_BACK;
+    boolean switchInProgress = false;
 
     public Engine onCreateEngine() {
         return new CameraEngine();
@@ -20,8 +26,12 @@ public class CameraWallpaper extends WallpaperService {
         public void onCreate(SurfaceHolder surfaceHolder) {
             super.onCreate(surfaceHolder);
 
+            sharedPref = getApplicationContext().getSharedPreferences("mySharedPref", Context.MODE_PRIVATE);
+
             startPreview();
             setTouchEventsEnabled(true);
+
+            switchPreview();
 
         }
 
@@ -47,16 +57,18 @@ public class CameraWallpaper extends WallpaperService {
         }
 
         public void startPreview() {
-            stopPreview();
-            camera = Camera.open(Camera.CameraInfo.CAMERA_FACING_BACK);
-            camera.setDisplayOrientation(90);
+            if (!switchInProgress) {
+                stopPreview();
+                camera = Camera.open(currCamera);
+                camera.setDisplayOrientation(90);
 
-            try {
-                camera.setPreviewDisplay(getSurfaceHolder());
-            } catch (IOException e) {
-                e.printStackTrace();
+                try {
+                    camera.setPreviewDisplay(getSurfaceHolder());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                camera.startPreview();
             }
-            camera.startPreview();
 
         }
 
@@ -65,7 +77,6 @@ public class CameraWallpaper extends WallpaperService {
                 try {
                     camera.stopPreview();
                     camera.setPreviewCallback(null);
-                    // camera.lock();
                     camera.release();
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -77,6 +88,33 @@ public class CameraWallpaper extends WallpaperService {
         @Override
         public void onPreviewFrame(byte[] bytes, Camera camera) {
             camera.addCallbackBuffer(bytes);
+        }
+
+        public void switchPreview() {
+
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    while (true) {
+                        if (!switchInProgress) {
+                            if ((sharedPref.getBoolean("isBackCamera", true)) && (currCamera == Camera.CameraInfo.CAMERA_FACING_FRONT)) {
+                                switchInProgress = true;
+                                stopPreview();
+                                currCamera = Camera.CameraInfo.CAMERA_FACING_BACK;
+                                switchInProgress = false;
+                                startPreview();
+
+                            } else if ((!sharedPref.getBoolean("isBackCamera", true)) && (currCamera == Camera.CameraInfo.CAMERA_FACING_BACK)) {
+                                switchInProgress = true;
+                                stopPreview();
+                                currCamera = Camera.CameraInfo.CAMERA_FACING_FRONT;
+                                switchInProgress = false;
+                                startPreview();
+                            }
+                        }
+                    }
+                }
+            }).start();
         }
 
     }

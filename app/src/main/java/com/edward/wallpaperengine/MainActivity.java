@@ -12,7 +12,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.app.WallpaperManager;
 import android.content.ComponentName;
 import android.content.SharedPreferences;
-import android.hardware.Camera;
 
 import java.io.IOException;
 
@@ -22,10 +21,8 @@ public class MainActivity extends AppCompatActivity {
     static final String PERMISSION_CAMERA = Manifest.permission.CAMERA;
     private Context mContext;
 
-    //private boolean isBackCamera = false;
     SharedPreferences sharedPref;
     SharedPreferences.Editor editor;
-    Camera camera;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -102,7 +99,7 @@ public class MainActivity extends AppCompatActivity {
 
     void startWallpaper() {
 
-        boolean isBackCamera = sharedPref.getBoolean("isBackCamera", false);
+        //boolean isBackCamera = sharedPref.getBoolean("isBackCamera", false);
         WallpaperManager wallpaperManager = WallpaperManager.getInstance(getApplicationContext());
         try {
             wallpaperManager.clear();
@@ -110,6 +107,13 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
+        ComponentName component = new ComponentName(getPackageName(), getPackageName() + ".CameraWallpaper");
+        Intent intent = new Intent(WallpaperManager.ACTION_CHANGE_LIVE_WALLPAPER);
+        intent.putExtra(WallpaperManager.EXTRA_LIVE_WALLPAPER_COMPONENT, component);
+        startActivityForResult(intent, 4);
+        finish();
+
+        /*
         if (isBackCamera) {
 
             ComponentName component = new ComponentName(getPackageName(), getPackageName() + ".CameraWallpaperFront");
@@ -118,7 +122,6 @@ public class MainActivity extends AppCompatActivity {
             startActivityForResult(intent, 4);
             editor.putBoolean("isBackCamera", false);
             editor.commit();
-            isBackCamera = false;
 
             finish();
 
@@ -130,11 +133,11 @@ public class MainActivity extends AppCompatActivity {
             startActivityForResult(intent, 4);
             editor.putBoolean("isBackCamera", true);
             editor.commit();
-            isBackCamera = true;
 
             finish();
 
         }
+        */
 
     }
 
@@ -143,7 +146,6 @@ public class MainActivity extends AppCompatActivity {
         if ((requestCode == 4) && (resultCode == RESULT_OK)) {
             Intent intent = new Intent(this, ShakeDetectService.class);
             startService(intent);
-            finish();
         }
     }
 
