@@ -24,7 +24,7 @@ import android.service.wallpaper.WallpaperService;
 
 import java.io.IOException;
 
-public class CameraPreview extends SurfaceView implements WallpaperService, SurfaceHolder.Callback, PreviewCallback {
+public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, PreviewCallback {
 
     private SurfaceHolder mHolder;
     private Camera mCamera;
@@ -38,8 +38,6 @@ public class CameraPreview extends SurfaceView implements WallpaperService, Surf
         // underlying surface is created and destroyed.
         mHolder = getHolder();
         mHolder.addCallback(this);
-        // deprecated setting, but required on Android versions prior to 3.0
-        mHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
     }
 
     public void surfaceCreated(SurfaceHolder holder) {
@@ -49,26 +47,12 @@ public class CameraPreview extends SurfaceView implements WallpaperService, Surf
             mCamera.setPreviewCallback(this);
             mCamera.setDisplayOrientation(90);
             mCamera.setPreviewDisplay(holder);
-            mCamera.getParameters().setPreviewFormat(ImageFormat.RGB_565);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
     public void surfaceDestroyed(SurfaceHolder holder) {
-
-    }
-
-    @Override
-    public Engine onCreateEngine() {
-        return new myEngine();
-    }
-
-    public class myEngine extends Engine {
-
-        public myEngine() {
-
-        }
 
     }
 
