@@ -7,7 +7,7 @@ import android.view.SurfaceHolder;
 
 import java.io.IOException;
 
-public class CameraWallpaper extends WallpaperService {
+public class CameraWallpaperFront extends WallpaperService {
 
     public Engine onCreateEngine() {
         return new CameraEngine();
@@ -47,8 +47,7 @@ public class CameraWallpaper extends WallpaperService {
         }
 
         public void startPreview() {
-            stopPreview();
-            camera = Camera.open(Camera.CameraInfo.CAMERA_FACING_BACK);
+            camera = Camera.open(Camera.CameraInfo.CAMERA_FACING_FRONT);
             camera.setDisplayOrientation(90);
 
             try {
